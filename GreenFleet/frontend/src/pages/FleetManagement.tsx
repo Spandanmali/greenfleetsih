@@ -37,9 +37,9 @@ function AddVesselModal({ onClose }: { onClose: () => void }) {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Add New Vessel</h2>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-[#151c1d] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg p-6">
+        <p className="eyebrow mb-2">Fleet registry</p><h2 className="text-lg font-semibold mb-4">Add new vessel</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
             ['IMO Number', 'imo_number', 'text', '1234567'],
@@ -109,13 +109,13 @@ export default function FleetManagement() {
   )
 
   return (
-    <div className="p-8">
+    <div className="page-shell">
       {showAdd && <AddVesselModal onClose={() => setShowAdd(false)} />}
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Fleet Management</h1>
-          <p className="text-gray-500 text-sm mt-1">{vessels.length} vessels registered</p>
+          <p className="eyebrow mb-2">Asset intelligence</p><h1 className="page-title">Fleet management</h1>
+          <p className="muted mt-2">{vessels.length} vessels registered across your operating fleet</p>
         </div>
         {canWrite(user) && (
           <button className="btn-primary flex items-center gap-2" onClick={() => setShowAdd(true)}>
@@ -125,7 +125,7 @@ export default function FleetManagement() {
         )}
       </div>
 
-      <div className="card mb-6">
+      <div className="card mb-6 bg-[#111819]/80">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -138,44 +138,44 @@ export default function FleetManagement() {
       </div>
 
       {isLoading ? (
-        <div className="text-gray-400 text-center py-12">Loading vessels…</div>
+        <div className="muted text-center py-12">Loading vessels…</div>
       ) : (
         <div className="card overflow-hidden p-0">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-white/[0.03] border-b border-white/[0.08]">
               <tr>
                 {['Vessel', 'IMO', 'Type', 'DWT (MT)', 'Speed (kn)', 'CII Grade', 'Status', ''].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  <th key={h} className="text-left px-4 py-3 text-[10px] font-semibold text-[#71807e] uppercase tracking-[0.12em]">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-white/[0.06]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-400">
+                  <td colSpan={8} className="text-center py-12 text-[#62706f]">
                     {search ? 'No vessels match your search' : 'No vessels yet — add your first vessel above'}
                   </td>
                 </tr>
               ) : (
                 filtered.map((v) => (
-                  <tr key={v.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/fleet/${v.id}`)}>
+                  <tr key={v.id} className="hover:bg-white/[0.03] cursor-pointer transition-colors" onClick={() => navigate(`/fleet/${v.id}`)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Ship size={16} className="text-ocean-400 shrink-0" />
-                        <span className="font-medium text-gray-800">{v.name}</span>
+                        <Ship size={16} className="text-[#53c8d2] shrink-0" />
+                        <span className="font-medium text-[#e5eeeb]">{v.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{v.imo_number}</td>
-                    <td className="px-4 py-3 capitalize text-gray-500">{v.vessel_type.replace('_', ' ')}</td>
-                    <td className="px-4 py-3 text-gray-500">{v.deadweight_tonnage?.toLocaleString() ?? '–'}</td>
-                    <td className="px-4 py-3 text-gray-500">{v.design_speed_knots ?? '–'}</td>
+                    <td className="px-4 py-3 text-[#8d9b99]">{v.imo_number}</td>
+                    <td className="px-4 py-3 capitalize text-[#8d9b99]">{v.vessel_type.replace('_', ' ')}</td>
+                    <td className="px-4 py-3 text-[#8d9b99]">{v.deadweight_tonnage?.toLocaleString() ?? '–'}</td>
+                    <td className="px-4 py-3 text-[#8d9b99]">{v.design_speed_knots ?? '–'}</td>
                     <td className="px-4 py-3"><CIIBadge grade={v.current_cii_grade} /></td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${v.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${v.is_active ? 'bg-[#55d58a]/10 text-[#70e5a0] border-[#55d58a]/20' : 'bg-white/[0.04] text-[#8d9b99] border-white/10'}`}>
                         {v.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-ocean-500 text-xs font-medium">View →</td>
+                    <td className="px-4 py-3 text-[#55d58a] text-xs font-medium">View →</td>
                   </tr>
                 ))
               )}

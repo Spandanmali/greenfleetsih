@@ -3,25 +3,61 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+  :root {
+    color-scheme: dark;
+    font-family: 'Inter', 'Geist', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --gf-ink: #f4f7f6;
+    --gf-muted: #8d9b99;
+    --gf-dim: #62706f;
+    --gf-line: rgba(148, 163, 158, 0.14);
+    --gf-green: #55d58a;
+    --gf-cyan: #53c8d2;
   }
+  * { border-color: var(--gf-line); }
+  html { background: #0b1011; }
+  body {
+    @apply min-h-screen bg-[#0b1011] text-[#f4f7f6] antialiased;
+    background-image: radial-gradient(circle at 85% -10%, rgba(51, 148, 127, 0.12), transparent 32rem), linear-gradient(135deg, #0b1011 0%, #101819 100%);
+  }
+  button, input, select { font: inherit; }
+  ::selection { background: rgba(85, 213, 138, 0.25); color: white; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0d1314; }
+  ::-webkit-scrollbar-thumb { background: #2b3838; border-radius: 999px; }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+    @apply rounded-2xl border p-6;
+    background: linear-gradient(145deg, rgba(25, 34, 34, 0.9), rgba(16, 23, 24, 0.94));
+    border-color: var(--gf-line);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16), inset 0 1px rgba(255, 255, 255, 0.025);
   }
   .btn-primary {
-    @apply bg-ocean-600 text-white px-4 py-2 rounded-lg hover:bg-ocean-700 transition-colors font-medium disabled:opacity-50;
+    @apply inline-flex items-center justify-center bg-[#55d58a] text-[#0b1712] px-4 py-2.5 rounded-xl hover:bg-[#70e5a0] transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed;
+    box-shadow: 0 8px 22px rgba(85, 213, 138, 0.14);
   }
   .btn-secondary {
-    @apply bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors font-medium;
+    @apply inline-flex items-center justify-center bg-white/[0.04] text-[#d8e2df] px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/[0.08] hover:border-white/20 transition-all font-medium;
   }
   .input {
-    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-transparent;
+    @apply w-full bg-[#0e1516] border border-white/10 text-[#eaf1ee] rounded-xl px-3.5 py-2.5 text-sm placeholder:text-[#5d6b6a] focus:outline-none focus:ring-2 focus:ring-[#55d58a]/30 focus:border-[#55d58a]/60 transition-all;
   }
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-[11px] uppercase tracking-[0.12em] font-semibold text-[#8d9b99] mb-2;
   }
+  .page-shell { @apply min-h-full p-5 sm:p-7 lg:p-10; }
+  .eyebrow { @apply text-[10px] uppercase tracking-[0.2em] font-bold text-[#55d58a]; }
+  .page-title { @apply text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-[#f4f7f6]; }
+  .muted { @apply text-sm text-[#8d9b99]; }
+}
+
+@keyframes gf-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.gf-enter { animation: gf-rise 500ms ease-out both; }
+.gf-delay-1 { animation-delay: 70ms; }
+.gf-delay-2 { animation-delay: 140ms; }
+.gf-delay-3 { animation-delay: 210ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-enter { animation: none; }
 }

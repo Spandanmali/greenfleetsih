@@ -87,14 +87,14 @@ export default function FuelPredictionPage() {
   const isValid = form.vessel_id && form.distance_nm && form.cargo_weight_mt && form.cruising_speed_knots
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Fuel Consumption Prediction</h1>
-      <p className="text-gray-500 text-sm mb-8">ML-powered voyage fuel forecast using vessel specs, cargo, and route data</p>
+    <div className="page-shell">
+      <p className="eyebrow mb-2">AI voyage intelligence</p><h1 className="page-title mb-2">Fuel consumption prediction</h1>
+      <p className="muted mb-8">Model fuel, cost and emissions before every voyage</p>
 
       <div className="grid grid-cols-2 gap-8">
         {/* Input form */}
         <div className="card space-y-4">
-          <h2 className="font-semibold text-gray-800 mb-2">Voyage Parameters</h2>
+          <h2 className="font-semibold text-[#e5eeeb] mb-2">Voyage parameters</h2>
 
           <div>
             <label className="label">Vessel</label>
@@ -144,7 +144,7 @@ export default function FuelPredictionPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Distance (nautical miles)</label>
-              <input type="number" className="input bg-gray-50" placeholder="Select both ports" value={form.distance_nm}
+              <input type="number" className="input " placeholder="Select both ports" value={form.distance_nm}
                 readOnly aria-readonly="true" />
             </div>
             <div>
@@ -175,7 +175,7 @@ export default function FuelPredictionPage() {
             <label className="label">Estimated Bunker (MT)</label>
             <input
               type="number"
-              className="input bg-gray-50"
+              className="input"
               value={bunkerEstimate ? bunkerEstimate.toFixed(2) : ''}
               placeholder="Complete vessel, route, cargo, and speed"
               readOnly
@@ -204,60 +204,60 @@ export default function FuelPredictionPage() {
             <>
               <div className="grid grid-cols-3 gap-3">
                 <div className="card text-center">
-                  <Fuel size={20} className="text-ocean-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-gray-900">{result.predicted_fuel_mt}</p>
-                  <p className="text-xs text-gray-500">Tonnes fuel</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <Fuel size={20} className="text-[#53c8d2] mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#f4f7f6]">{result.predicted_fuel_mt}</p>
+                  <p className="text-xs text-[#8d9b99]">Tonnes fuel</p>
+                  <p className="text-xs text-[#62706f] mt-1">
                     {result.confidence_lower}–{result.confidence_upper} MT (90% CI)
                   </p>
                 </div>
                 <div className="card text-center">
-                  <DollarSign size={20} className="text-fleet-green mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-gray-900">
+                  <DollarSign size={20} className="text-[#55d58a] mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#f4f7f6]">
                     ${result.predicted_cost_usd.toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-500">Estimated cost</p>
+                  <p className="text-xs text-[#8d9b99]">Estimated cost</p>
                 </div>
                 <div className="card text-center">
-                  <Wind size={20} className="text-fleet-amber mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-gray-900">{result.predicted_co2_tonnes}</p>
-                  <p className="text-xs text-gray-500">Tonnes CO₂</p>
+                  <Wind size={20} className="text-[#e7b86a] mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#f4f7f6]">{result.predicted_co2_tonnes}</p>
+                  <p className="text-xs text-[#8d9b99]">Tonnes CO₂</p>
                 </div>
               </div>
 
               <div className="card">
-                <h3 className="font-semibold text-gray-800 mb-4">Speed Sensitivity</h3>
+                <h3 className="font-semibold text-[#e5eeeb] mb-4">Speed sensitivity</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={result.speed_sensitivity} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="speed_knots" tickFormatter={(v) => `${v}kn`} tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => [`${v} MT`, 'Fuel']} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,158,.12)" />
+                    <XAxis dataKey="speed_knots" tickFormatter={(v) => `${v}kn`} tick={{ fontSize: 11, fill: '#8d9b99' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#8d9b99' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: '#172121', border: '1px solid rgba(148,163,158,.18)', borderRadius: 12, color: '#f4f7f6' }} formatter={(v) => [`${v} MT`, 'Fuel']} />
                     <ReferenceLine
                       x={result.cruising_speed_knots}
-                      stroke="#0284c7"
+                      stroke="#53c8d2"
                       strokeDasharray="4 2"
                       label={{ value: 'Selected', fontSize: 10 }}
                     />
-                    <Bar dataKey="fuel_mt" fill="#0284c7" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="fuel_mt" fill="#53c8d2" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-                <p className="text-xs text-gray-400 mt-2 text-center">
+                <p className="text-xs text-[#62706f] mt-2 text-center">
                   Fuel consumption at ±4 knots from planned speed
                 </p>
               </div>
 
               <div className="card">
-                <h3 className="font-semibold text-gray-800 mb-3">Full Speed Comparison</h3>
+                <h3 className="font-semibold text-[#e5eeeb] mb-3">Full speed comparison</h3>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-gray-500 border-b">
+                    <tr className="text-xs text-[#8d9b99] border-b">
                       <th className="text-left pb-2">Speed</th>
                       <th className="text-right pb-2">Fuel (MT)</th>
                       <th className="text-right pb-2">Cost (USD)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/[0.06]">
                     {result.speed_sensitivity.map((row) => (
                       <tr key={row.speed_knots} className={row.speed_knots === result.cruising_speed_knots ? 'bg-ocean-50' : ''}>
                         <td className="py-2 font-medium">{row.speed_knots} kn {row.speed_knots === result.cruising_speed_knots ? '← selected' : ''}</td>
@@ -271,7 +271,7 @@ export default function FuelPredictionPage() {
             </>
           ) : (
             <div className="card h-full flex items-center justify-center min-h-64">
-              <div className="text-center text-gray-400">
+              <div className="text-center text-[#62706f]">
                 <TrendingDown size={40} className="mx-auto mb-3 opacity-40" />
                 <p className="text-sm">Fill in voyage parameters and run the prediction</p>
               </div>

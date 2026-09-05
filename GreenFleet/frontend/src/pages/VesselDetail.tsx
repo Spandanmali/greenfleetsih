@@ -28,7 +28,7 @@ export default function VesselDetail() {
     enabled: !!id,
   })
 
-  if (!vessel) return <div className="p-8 text-gray-400">Loading vessel…</div>
+  if (!vessel) return <div className="page-shell muted">Loading vessel…</div>
 
   const specs = [
     ['IMO Number', vessel.imo_number],
@@ -43,19 +43,19 @@ export default function VesselDetail() {
   ]
 
   return (
-    <div className="p-8">
-      <button onClick={() => navigate('/fleet')} className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm mb-6">
+    <div className="page-shell">
+      <button onClick={() => navigate('/fleet')} className="flex items-center gap-2 text-[#8d9b99] hover:text-[#f4f7f6] text-sm mb-6">
         <ArrowLeft size={16} /> Back to Fleet
       </button>
 
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-ocean-100 rounded-xl flex items-center justify-center">
-            <Ship size={24} className="text-ocean-600" />
+          <div className="w-12 h-12 bg-[#53c8d2]/10 border border-[#53c8d2]/20 rounded-xl flex items-center justify-center">
+            <Ship size={24} className="text-[#53c8d2]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{vessel.name}</h1>
-            <p className="text-gray-500 text-sm">IMO {vessel.imo_number}</p>
+            <h1 className="page-title">{vessel.name}</h1>
+            <p className="muted">IMO {vessel.imo_number}</p>
           </div>
         </div>
         <CIIBadge grade={vessel.current_cii_grade} size="lg" />
@@ -64,12 +64,12 @@ export default function VesselDetail() {
       <div className="grid grid-cols-3 gap-6">
         {/* Vessel specs */}
         <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-4">Vessel Specifications</h2>
+          <h2 className="font-semibold text-[#e5eeeb] mb-4">Vessel specifications</h2>
           <dl className="space-y-2">
             {specs.map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm">
-                <dt className="text-gray-500">{label}</dt>
-                <dd className="font-medium text-gray-800 capitalize">{value}</dd>
+                <dt className="text-[#71807e]">{label}</dt>
+                <dd className="font-medium text-[#d8e2df] capitalize">{value}</dd>
               </div>
             ))}
           </dl>
@@ -77,20 +77,20 @@ export default function VesselDetail() {
 
         {/* CII history chart */}
         <div className="card col-span-2">
-          <h2 className="font-semibold text-gray-800 mb-4">CII History</h2>
+          <h2 className="font-semibold text-[#e5eeeb] mb-4">CII history</h2>
           {ciiHistory.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={ciiHistory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Line dataKey="attained_cii" name="Attained CII" stroke="#0284c7" dot />
-                <Line dataKey="required_cii" name="Required CII" stroke="#d97706" strokeDasharray="4 2" dot={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,158,.12)" />
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#8d9b99' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#8d9b99' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: '#172121', border: '1px solid rgba(148,163,158,.18)', borderRadius: 12, color: '#f4f7f6' }} />
+                <Line dataKey="attained_cii" name="Attained CII" stroke="#53c8d2" dot />
+                <Line dataKey="required_cii" name="Required CII" stroke="#e7b86a" strokeDasharray="4 2" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+            <div className="h-48 flex items-center justify-center text-[#62706f] text-sm">
               No CII records yet. Calculate CII after adding voyage data.
             </div>
           )}
@@ -98,19 +98,19 @@ export default function VesselDetail() {
 
         {/* Recent voyages */}
         <div className="card col-span-3">
-          <h2 className="font-semibold text-gray-800 mb-4">Voyage History</h2>
+          <h2 className="font-semibold text-[#e5eeeb] mb-4">Voyage history</h2>
           {voyages.length === 0 ? (
-            <div className="text-gray-400 text-sm">No voyages recorded for this vessel</div>
+            <div className="text-[#62706f] text-sm">No voyages recorded for this vessel</div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-xs text-gray-500 border-b">
+              <thead className="text-xs text-[#8d9b99] border-b">
                 <tr>
                   {['Route', 'Cargo (MT)', 'Speed (kn)', 'Predicted Fuel', 'Actual Fuel', 'Variance', 'Status'].map((h) => (
                     <th key={h} className="text-left pb-2 font-semibold">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-white/[0.06]">
                 {voyages.map((v) => {
                   const variance = v.actual_fuel_consumed_mt && v.predicted_fuel_consumed_mt
                     ? ((v.actual_fuel_consumed_mt - v.predicted_fuel_consumed_mt) / v.predicted_fuel_consumed_mt * 100).toFixed(1)
