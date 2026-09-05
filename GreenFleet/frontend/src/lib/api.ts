@@ -60,3 +60,7 @@ export const ciiApi = {
   calculate: (data: object) => api.post('/cii/calculate', data),
   history: (vessel_id: string) => api.get(`/cii/vessel/${vessel_id}/history`),
 }
+
+export const optimizationApi = {
+  runQpso: (data: object) => api.post('/optimization/qpso', data),
+}
