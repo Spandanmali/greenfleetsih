@@ -1,0 +1,7 @@
+# Install only when training the ML model (requires Python <=3.12 for pre-built wheels)
+# pip install -r requirements-ml.txt
+pandas>=2.2.0
+numpy>=1.26.0
+scikit-learn>=1.5.0
+xgboost>=2.0.3
+joblib>=1.4.0
