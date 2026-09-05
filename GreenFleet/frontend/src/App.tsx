@@ -7,6 +7,7 @@ import FleetManagement from './pages/FleetManagement'
 import FuelPrediction from './pages/FuelPrediction'
 import Reports from './pages/Reports'
 import VesselDetail from './pages/VesselDetail'
+import WhatWeSolve from './pages/WhatWeSolve'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const user = getStoredUser()
@@ -27,6 +28,8 @@ export default function App() {
             </RequireAuth>
           }
         >
+          <Route path="what-we-do" element={<WhatWeSolve />} />
+          <Route path="solve" element={<Navigate to="/what-we-do" replace />} />
           <Route index element={<Dashboard />} />
           <Route path="fleet" element={<FleetManagement />} />
           <Route path="fleet/:id" element={<VesselDetail />} />

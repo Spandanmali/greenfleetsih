@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Anchor } from 'lucide-react'
 import { authApi } from '../lib/api'
-import { storeSession } from '../lib/auth'
+import { hasCompletedOnboarding, storeSession } from '../lib/auth'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -22,7 +22,7 @@ export default function Login() {
       }
       const res = await authApi.login(email.trim(), password)
       storeSession(res.data.access_token, res.data.user)
-      navigate('/', { replace: true })
+      navigate(hasCompletedOnboarding(res.data.user) ? '/' : '/what-we-do', { replace: true })
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Login failed')
     } finally {

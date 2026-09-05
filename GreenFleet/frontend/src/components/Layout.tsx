@@ -1,8 +1,9 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { Ship, BarChart3, Fuel, FileText, LogOut, Anchor, Bell, ChevronDown, CircleHelp } from 'lucide-react'
+import { Ship, BarChart3, Fuel, FileText, LogOut, Anchor, Bell, ChevronDown, CircleHelp, Lightbulb } from 'lucide-react'
 import { getStoredUser, clearSession } from '../lib/auth'
 
 const nav = [
+  { to: '/what-we-do', label: 'What We Do', icon: Lightbulb },
   { to: '/', label: 'Dashboard', icon: BarChart3, end: true },
   { to: '/fleet', label: 'Fleet', icon: Ship },
   { to: '/predict', label: 'Fuel Prediction', icon: Fuel },
