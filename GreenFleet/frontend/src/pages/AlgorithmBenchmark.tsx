@@ -7,6 +7,7 @@ import { optimizationApi, vesselApi } from '../lib/api'
 import { Vessel } from '../types'
 import { PORTS, getIdealDistance } from '../lib/ports'
 import { FUEL_TYPES } from '../lib/fuels'
+import { formatUsd } from '../lib/format'
 
 type RouteInput = {
   id: string
@@ -107,11 +108,11 @@ export default function AlgorithmBenchmark() {
 
       {result && <>
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 gf-enter">
-          {[['QPSO final cost', `$${result.qpso.final_cost_usd.toLocaleString()}`], ['GA final cost', `$${result.ga.final_cost_usd.toLocaleString()}`], ['QPSO time', `${result.qpso.runtime_ms} ms`], ['GA time', `${result.ga.runtime_ms} ms`], ['Better cost', better]].map(([label, value]) => <div key={label} className="card !p-4"><p className="label">{label}</p><p className="text-xl font-semibold text-[#70e5a0]">{value}</p></div>)}
+          {[['QPSO final cost', formatUsd(result.qpso.final_cost_usd)], ['GA final cost', formatUsd(result.ga.final_cost_usd)], ['QPSO time', `${result.qpso.runtime_ms} ms`], ['GA time', `${result.ga.runtime_ms} ms`], ['Better cost', better]].map(([label, value]) => <div key={label} className="card !p-4"><p className="label">{label}</p><p className="text-xl font-semibold text-[#70e5a0]">{value}</p></div>)}
         </section>
         <section className="card gf-enter gf-delay-1">
           <div className="flex items-center justify-between mb-5"><div><p className="label mb-1">Convergence history</p><h2 className="text-lg font-semibold">Best cost by iteration</h2></div><div className="flex items-center gap-2 text-xs text-[#8d9b99]"><Gauge size={15} />{result.iterations} iterations per algorithm</div></div>
-          <div className="h-[360px] w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 18, left: 8, bottom: 8 }}><CartesianGrid stroke="rgba(255,255,255,.08)" strokeDasharray="3 3" /><XAxis dataKey="iteration" stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} label={{ value: 'Iteration', position: 'insideBottom', offset: -2, fill: '#8d9b99' }} /><YAxis stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} tickFormatter={(value) => `$${Number(value).toLocaleString()}`} label={{ value: 'Best Cost', angle: -90, position: 'insideLeft', fill: '#8d9b99' }} /><Tooltip contentStyle={{ background: '#101718', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10 }} formatter={(value: number) => [`$${value.toLocaleString()}`, '']} /><Legend /><Line type="monotone" dataKey="qpso" name="QPSO" stroke="#76dbe2" strokeWidth={2.5} dot={false} /><Line type="monotone" dataKey="ga" name="GA" stroke="#70e5a0" strokeWidth={2.5} dot={false} /></LineChart></ResponsiveContainer></div>
+          <div className="h-[360px] w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 18, left: 8, bottom: 8 }}><CartesianGrid stroke="rgba(255,255,255,.08)" strokeDasharray="3 3" /><XAxis dataKey="iteration" stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} label={{ value: 'Iteration', position: 'insideBottom', offset: -2, fill: '#8d9b99' }} /><YAxis stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} tickFormatter={(value) => formatUsd(Number(value))} label={{ value: 'Best Cost', angle: -90, position: 'insideLeft', fill: '#8d9b99' }} /><Tooltip contentStyle={{ background: '#101718', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10 }} formatter={(value: number) => [formatUsd(value), '']} /><Legend /><Line type="monotone" dataKey="qpso" name="QPSO" stroke="#76dbe2" strokeWidth={2.5} dot={false} /><Line type="monotone" dataKey="ga" name="GA" stroke="#70e5a0" strokeWidth={2.5} dot={false} /></LineChart></ResponsiveContainer></div>
           <p className="mt-3 flex items-center gap-2 text-xs text-[#8d9b99]"><Timer size={14} />Both algorithms received the same route, vessel set, speeds, fuels, objective, iteration count, population size, and seed.</p>
         </section>
       </>}

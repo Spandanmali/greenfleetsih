@@ -7,6 +7,7 @@ import { Vessel, FuelPrediction } from '../types'
 import toast from 'react-hot-toast'
 import { getIdealDistance, PORTS } from '../lib/ports'
 import { FUEL_TYPES, FUEL_PRICES_USD_PER_UNIT, fuelLabel } from '../lib/fuels'
+import { formatFuelMt, formatUsd } from '../lib/format'
 
 export default function FuelPredictionPage() {
   const [form, setForm] = useState({
@@ -25,18 +26,6 @@ export default function FuelPredictionPage() {
     queryKey: ['vessels'],
     queryFn: () => vesselApi.list().then((r) => r.data),
   })
-
-  const selectedVessel = vessels.find((vessel) => vessel.id === form.vessel_id)
-  const hasRequiredFields = Boolean(
-    selectedVessel && form.origin_port && form.destination_port && form.distance_nm
-      && form.cargo_weight_mt && form.cruising_speed_knots
-  )
-  const loadFactor = Number(form.cargo_weight_mt) / Math.max(selectedVessel?.deadweight_tonnage || 75000, 1)
-  const bunkerEstimate = hasRequiredFields
-    ? (selectedVessel?.engine_power_kw || 12000)
-      * (Math.max(Number(form.cruising_speed_knots), 1) / 14) ** 3 * loadFactor * 185
-      * (Number(form.distance_nm) / Math.max(Number(form.cruising_speed_knots), 1)) / 1_000_000
-    : 0
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -142,18 +131,6 @@ export default function FuelPredictionPage() {
           </div>
 
           <div>
-            <label className="label">Estimated Bunker (MT)</label>
-            <input
-              type="number"
-              className="input"
-              value={bunkerEstimate ? bunkerEstimate.toFixed(2) : ''}
-              placeholder="Complete vessel, route, cargo, and speed"
-              readOnly
-              aria-readonly="true"
-            />
-          </div>
-
-          <div>
             <label className="label">Bunker Price (USD/MT)</label>
             <input type="number" className="input" value={form.fuel_price_per_mt}
               onChange={(e) => setForm((f) => ({ ...f, fuel_price_per_mt: e.target.value }))} />
@@ -175,7 +152,7 @@ export default function FuelPredictionPage() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="card text-center">
                   <Fuel size={20} className="text-[#53c8d2] mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-[#f4f7f6]">{result.predicted_fuel_mt}</p>
+                  <p className="text-2xl font-bold text-[#f4f7f6]">{formatFuelMt(result.predicted_fuel_mt)}</p>
                   <p className="text-xs text-[#8d9b99]">Tonnes fuel</p>
                   <p className="text-xs text-[#62706f] mt-1">
                     {result.confidence_lower}–{result.confidence_upper} MT (90% CI)
@@ -184,7 +161,7 @@ export default function FuelPredictionPage() {
                 <div className="card text-center">
                   <DollarSign size={20} className="text-[#55d58a] mx-auto mb-2" />
                   <p className="text-2xl font-bold text-[#f4f7f6]">
-                    ${result.predicted_cost_usd.toLocaleString()}
+                    {formatUsd(result.predicted_cost_usd)}
                   </p>
                   <p className="text-xs text-[#8d9b99]">Estimated cost</p>
                 </div>
@@ -231,8 +208,8 @@ export default function FuelPredictionPage() {
                     {result.speed_sensitivity.map((row) => (
                       <tr key={row.speed_knots} className={row.speed_knots === result.cruising_speed_knots ? 'bg-ocean-50' : ''}>
                         <td className="py-2 font-medium">{row.speed_knots} kn {row.speed_knots === result.cruising_speed_knots ? '← selected' : ''}</td>
-                        <td className="py-2 text-right">{row.fuel_mt}</td>
-                        <td className="py-2 text-right">${row.cost_usd.toLocaleString()}</td>
+                        <td className="py-2 text-right">{formatFuelMt(row.fuel_mt)}</td>
+                        <td className="py-2 text-right">{formatUsd(row.cost_usd)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -99,9 +99,9 @@ export default function Reports() {
                 <Download size={16} />
                 Generate PDF
               </button>
-              <button className="btn-secondary flex items-center gap-2">
+              <button className="btn-secondary flex items-center gap-2 cursor-not-allowed opacity-50" disabled title="CSV export is not available yet">
                 <Download size={16} />
-                Export CSV
+                Export CSV (unavailable)
               </button>
             </div>
           </div>
