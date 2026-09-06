@@ -2,6 +2,7 @@
 
 import math
 import random
+import time
 from dataclasses import dataclass
 from typing import Callable, List, Sequence
 
@@ -22,6 +23,7 @@ class QPSOResult:
     initial_cost: float
     convergence: List[float]
     evaluations: int
+    runtime_ms: float
 
 
 class QPSOOptimizer:
@@ -66,6 +68,7 @@ class QPSOOptimizer:
         return assignments
 
     def optimize(self, objective: Callable[[List[DiscreteAssignment]], float]) -> QPSOResult:
+        started = time.perf_counter()
         # Coordinates are stored route-major: vessel, speed, fuel per route.
         particles = [
             [value for route_index in range(self.route_count) for choice in self.choice_counts
@@ -79,7 +82,7 @@ class QPSOOptimizer:
         global_best = personal_best[best_index][:]
         global_cost = personal_costs[best_index]
         initial_cost = global_cost
-        convergence = [round(global_cost, 2)]
+        convergence = [global_cost]
 
         for iteration in range(self.iterations):
             mbest = [
@@ -108,6 +111,13 @@ class QPSOOptimizer:
                     if cost < global_cost:
                         global_best = particle[:]
                         global_cost = cost
-            convergence.append(round(global_cost, 2))
+            convergence.append(global_cost)
 
-        return QPSOResult(global_best, global_cost, initial_cost, convergence, evaluations)
+        return QPSOResult(
+            global_best,
+            global_cost,
+            initial_cost,
+            convergence,
+            evaluations,
+            round((time.perf_counter() - started) * 1000, 2),
+        )

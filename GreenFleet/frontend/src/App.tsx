@@ -9,6 +9,7 @@ import Reports from './pages/Reports'
 import VesselDetail from './pages/VesselDetail'
 import WhatWeSolve from './pages/WhatWeSolve'
 import QuantumFleetOptimization from './pages/QuantumFleetOptimization'
+import AlgorithmBenchmark from './pages/AlgorithmBenchmark'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const user = getStoredUser()
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="fleet/:id" element={<VesselDetail />} />
           <Route path="predict" element={<FuelPrediction />} />
           <Route path="optimize" element={<QuantumFleetOptimization />} />
+          <Route path="benchmark" element={<AlgorithmBenchmark />} />
           <Route path="reports" element={<Reports />} />
         </Route>
       </Routes>

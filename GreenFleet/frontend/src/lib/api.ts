@@ -63,4 +63,5 @@ export const ciiApi = {
 
 export const optimizationApi = {
   runQpso: (data: object) => api.post('/optimization/qpso', data),
+  benchmark: (data: object) => api.post('/optimization/benchmark', data),
 }

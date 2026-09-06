@@ -82,7 +82,9 @@ class GAOptimizer:
         started = time.perf_counter()
         evaluate_invalid()
         initial_cost = min(individual.fitness.values[0] for individual in population)
-        convergence = [round(initial_cost, 2)]
+        best_cost = initial_cost
+        best_individual = min(population, key=lambda individual: individual.fitness.values[0])[:]
+        convergence = [best_cost]
         for _ in range(self.generations):
             offspring = list(map(toolbox.clone, toolbox.select(population, len(population))))
             for first, second in zip(offspring[::2], offspring[1::2]):
@@ -96,12 +98,15 @@ class GAOptimizer:
                     del individual.fitness.values
             population[:] = offspring
             evaluate_invalid()
-            convergence.append(round(min(individual.fitness.values[0] for individual in population), 2))
+            generation_best = min(population, key=lambda individual: individual.fitness.values[0])
+            if generation_best.fitness.values[0] < best_cost:
+                best_cost = generation_best.fitness.values[0]
+                best_individual = generation_best[:]
+            convergence.append(best_cost)
 
-        best = tools.selBest(population, 1)[0]
         return GAResult(
-            assignments=self._assignment(best),
-            best_cost=best.fitness.values[0],
+            assignments=self._assignment(best_individual),
+            best_cost=best_cost,
             initial_cost=initial_cost,
             generations=self.generations,
             evaluations=evaluations,

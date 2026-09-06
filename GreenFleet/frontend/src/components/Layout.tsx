@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { Ship, BarChart3, Fuel, FileText, LogOut, Anchor, Bell, ChevronDown, CircleHelp, Lightbulb, Atom } from 'lucide-react'
+import { Ship, BarChart3, Fuel, FileText, LogOut, Anchor, Bell, ChevronDown, CircleHelp, Lightbulb, Atom, LineChart } from 'lucide-react'
 import { getStoredUser, clearSession } from '../lib/auth'
 
 const nav = [
@@ -8,6 +8,7 @@ const nav = [
   
   { to: '/predict', label: 'Fuel Prediction', icon: Fuel },
   { to: '/optimize', label: 'Quantum Fleet Optimization', icon: Atom },
+  { to: '/benchmark', label: 'Algorithm Benchmark', icon: LineChart },
   
 ]
 

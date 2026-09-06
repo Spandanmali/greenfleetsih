@@ -70,3 +70,16 @@ class QPSOResponse(BaseModel):
     total_cost_usd: float
     total_co2_tonnes: float
     metrics: QPSOMetrics
+
+
+class BenchmarkAlgorithmResult(BaseModel):
+    final_cost_usd: float
+    convergence: List[float]
+    runtime_ms: float
+
+
+class BenchmarkResponse(BaseModel):
+    qpso: BenchmarkAlgorithmResult
+    ga: BenchmarkAlgorithmResult
+    iterations: int
+    particles: int
