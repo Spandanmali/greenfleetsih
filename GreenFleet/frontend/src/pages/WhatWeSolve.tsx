@@ -282,7 +282,7 @@ export default function WhatWeSolve() {
               <div className={`mb-5 flex h-11 w-11 items-center justify-center rounded-xl border ${accent === 'green' ? 'border-[#55d58a]/20 bg-[#55d58a]/10 text-[#70e5a0]' : accent === 'cyan' ? 'border-[#53c8d2]/20 bg-[#53c8d2]/10 text-[#76dbe2]' : accent === 'amber' ? 'border-[#e7b86a]/20 bg-[#e7b86a]/10 text-[#e7b86a]' : 'border-[#6db3e8]/20 bg-[#6db3e8]/10 text-[#82c4f2]'}`}><Icon size={20} /></div>
               <h3 className="text-lg font-semibold text-[#edf5f1]">{title}</h3>
               <p className="mt-2 text-sm leading-6 text-[#899a96]">{description}</p>
-              <div className="mt-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#55d58a] opacity-0 transition-opacity group-hover:opacity-100">GreenFleet response <ArrowRight size={13} /></div>
+              <div className="mt-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#55d58a] opacity-0 transition-opacity group-hover:opacity-100"></div>
             </article>
           ))}
         </div>
