@@ -6,6 +6,7 @@ import { vesselApi, predictionApi } from '../lib/api'
 import { Vessel, FuelPrediction } from '../types'
 import toast from 'react-hot-toast'
 import { getIdealDistance, PORTS } from '../lib/ports'
+import { FUEL_TYPES, FUEL_PRICES_USD_PER_UNIT, fuelLabel } from '../lib/fuels'
 
 export default function FuelPredictionPage() {
   const [form, setForm] = useState({
@@ -132,9 +133,9 @@ export default function FuelPredictionPage() {
             <div>
               <label className="label">Fuel Type</label>
               <select className="input" value={form.fuel_type}
-                onChange={(e) => setForm((f) => ({ ...f, fuel_type: e.target.value }))}>
-                {['VLSFO', 'MGO', 'HFO', 'LNG', 'METHANOL'].map((ft) => (
-                  <option key={ft}>{ft}</option>
+                onChange={(e) => setForm((f) => ({ ...f, fuel_type: e.target.value, fuel_price_per_mt: String(FUEL_PRICES_USD_PER_UNIT[e.target.value]) }))}>
+                {FUEL_TYPES.map((ft) => (
+                  <option key={ft} value={ft}>{fuelLabel(ft)}</option>
                 ))}
               </select>
             </div>

@@ -4,6 +4,8 @@ attained_CII = CO2_emitted (g) / (capacity * distance_nm)
 capacity = DWT for bulk carriers and tankers, GT for others
 """
 
+from app.core.fuels import CO2_FACTORS
+
 # Reference CII (g/tonne-nm) reduction factors per vessel type (IMO table)
 # These are the 'a' and 'c' parameters for: required_CII = a * capacity^c
 CII_PARAMS = {
@@ -39,15 +41,6 @@ GRADE_BOUNDARIES = {
     "other":          {"d1": 0.83, "d2": 0.94, "d3": 1.07, "d4": 1.19},
 }
 
-CO2_FACTORS = {
-    "VLSFO": 3.151,
-    "MGO":   3.206,
-    "HFO":   3.114,
-    "LNG":   2.750,
-    "METHANOL": 1.375,
-}
-
-
 def calculate_cii(
     vessel_type: str,
     capacity: float,
@@ -56,7 +49,7 @@ def calculate_cii(
     fuel_type: str = "VLSFO",
     year: int = 2026,
 ) -> dict:
-    co2_factor = CO2_FACTORS.get(fuel_type.upper(), 3.151)
+    co2_factor = CO2_FACTORS.get(fuel_type.upper(), CO2_FACTORS["VLSFO"])
     co2_grams = fuel_consumed_mt * co2_factor * 1_000_000  # MT → grams
 
     transport_work = capacity * distance_nm

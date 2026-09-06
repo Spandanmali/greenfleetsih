@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import datetime
+from app.core.fuels import validate_fuel_type
 
 
 class PredictionRequest(BaseModel):
@@ -12,6 +13,11 @@ class PredictionRequest(BaseModel):
     cruising_speed_knots: float
     fuel_type: str = "VLSFO"
     fuel_price_per_mt: Optional[float] = 600.0
+
+    @field_validator("fuel_type")
+    @classmethod
+    def validate_fuel(cls, value: str) -> str:
+        return validate_fuel_type(value)
 
 
 class SpeedSensitivityPoint(BaseModel):

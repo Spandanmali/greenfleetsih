@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 from app.models.voyage import VoyageStatus
+from app.core.fuels import validate_fuel_type
 
 
 class VoyageCreate(BaseModel):
@@ -14,6 +15,11 @@ class VoyageCreate(BaseModel):
     cruising_speed_knots: Optional[float] = None
     fuel_type: str = "VLSFO"
     departure_time: Optional[datetime] = None
+
+    @field_validator("fuel_type")
+    @classmethod
+    def validate_fuel(cls, value: str) -> str:
+        return validate_fuel_type(value)
 
 
 class VoyageUpdate(BaseModel):

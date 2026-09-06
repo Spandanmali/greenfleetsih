@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 from app.models.vessel import VesselType, CIIGrade
+from app.core.fuels import validate_fuel_type
 
 
 class VesselCreate(BaseModel):
@@ -18,6 +19,11 @@ class VesselCreate(BaseModel):
     fuel_type: str = "VLSFO"
     build_year: Optional[int] = None
 
+    @field_validator("fuel_type")
+    @classmethod
+    def validate_fuel(cls, value: str) -> str:
+        return validate_fuel_type(value)
+
 
 class VesselUpdate(BaseModel):
     name: Optional[str] = None
@@ -28,6 +34,11 @@ class VesselUpdate(BaseModel):
     current_latitude: Optional[float] = None
     current_longitude: Optional[float] = None
     is_active: Optional[bool] = None
+
+    @field_validator("fuel_type")
+    @classmethod
+    def validate_fuel(cls, value: Optional[str]) -> Optional[str]:
+        return validate_fuel_type(value) if value is not None else None
 
 
 class VesselOut(BaseModel):

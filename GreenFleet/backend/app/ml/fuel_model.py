@@ -5,6 +5,7 @@ vessel_type_encoded, gross_tonnage, deadweight_tonnage, distance_nm,
 cargo_weight_mt, speed_knots, load_factor, engine_power_kw
 """
 from pathlib import Path
+from app.core.fuels import CO2_FACTORS, default_fuel_cost
 
 try:
     import numpy as np
@@ -15,15 +16,6 @@ except ImportError:
 
 MODEL_PATH = Path(__file__).parent / "fuel_model.joblib"
 MODEL_VERSION = "1.0.0-synthetic"
-
-# CO2 emission factors per fuel type (tCO2 / tFuel), per IMO 4th GHG Study
-CO2_FACTORS = {
-    "VLSFO": 3.151,
-    "MGO": 3.206,
-    "HFO": 3.114,
-    "LNG": 2.750,
-    "METHANOL": 1.375,
-}
 
 VESSEL_TYPE_MAP = {
     "bulk_carrier": 0,
@@ -83,7 +75,7 @@ def predict(
     cargo_weight_mt: float,
     speed_knots: float,
     fuel_type: str = "VLSFO",
-    fuel_price_per_mt: float = 600.0,
+    fuel_price_per_mt: float | None = 600.0,
 ) -> dict:
     model = load_model()
     load_factor = cargo_weight_mt / max(deadweight_tonnage, 1)
@@ -101,9 +93,10 @@ def predict(
         )
         confidence_margin = predicted_mt * 0.12
 
-    co2_factor = CO2_FACTORS.get(fuel_type.upper(), 3.151)
+    co2_factor = CO2_FACTORS.get(fuel_type.upper(), CO2_FACTORS["VLSFO"])
+    effective_fuel_price = default_fuel_cost(fuel_type, fuel_price_per_mt)
     co2_tonnes = predicted_mt * co2_factor
-    cost_usd = predicted_mt * fuel_price_per_mt
+    cost_usd = predicted_mt * effective_fuel_price
 
     # Speed sensitivity: compute for ±4 and ±2 knots
     sensitivity = []
@@ -119,7 +112,7 @@ def predict(
         sensitivity.append({
             "speed_knots": round(s, 1),
             "fuel_mt": round(fuel, 2),
-            "cost_usd": round(fuel * fuel_price_per_mt, 0),
+            "cost_usd": round(fuel * effective_fuel_price, 0),
         })
 
     return {
@@ -128,7 +121,7 @@ def predict(
         "confidence_upper": round(predicted_mt + confidence_margin, 2),
         "predicted_cost_usd": round(cost_usd, 0),
         "predicted_co2_tonnes": round(co2_tonnes, 2),
-        "fuel_price_per_mt": fuel_price_per_mt,
+        "fuel_price_per_mt": effective_fuel_price,
         "speed_sensitivity": sensitivity,
         "model_version": MODEL_VERSION,
     }

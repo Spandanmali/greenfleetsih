@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { optimizationApi, vesselApi } from '../lib/api'
 import { Vessel } from '../types'
 import { PORTS, getIdealDistance } from '../lib/ports'
+import { FUEL_TYPES } from '../lib/fuels'
 
 type RouteInput = {
   id: string
@@ -23,7 +24,6 @@ type BenchmarkResult = {
   particles: number
 }
 
-const FUEL_TYPES = ['VLSFO', 'MGO', 'HFO', 'LNG', 'METHANOL']
 const defaultRoute: RouteInput = {
   id: 'benchmark-route',
   origin_port: 'SGSIN',

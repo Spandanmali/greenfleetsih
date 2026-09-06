@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { optimizationApi, vesselApi, voyageApi } from '../lib/api'
 import { Vessel, Voyage } from '../types'
 import { getEstimatedBunker, getIdealDistance, PORTS } from '../lib/ports'
+import { FUEL_TYPES } from '../lib/fuels'
 
 type RouteInput = {
   id: string
@@ -42,7 +43,6 @@ type OptimizationResult = {
   }
 }
 
-const FUEL_TYPES = ['VLSFO', 'MGO', 'HFO', 'LNG', 'METHANOL']
 const DEFAULT_SPEEDS = '10, 12, 14, 16'
 
 function newRoute(): RouteInput {

@@ -79,6 +79,10 @@ export default function Login() {
           <button type="button" className="w-full mt-5 text-sm text-[#55d58a] hover:text-[#70e5a0] transition-colors" onClick={() => setIsRegistering((value) => !value)}>
             {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Create one'}
           </button>
+          <div className="text-center text-sm text-[#71807e] mt-5">
+            <div>demo email: abc@gmail.com</div>
+            <div>demo password: 123456789</div>
+          </div>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { Vessel, VesselType } from '../types'
 import CIIBadge from '../components/CIIBadge'
 import { getStoredUser, canWrite } from '../lib/auth'
 import toast from 'react-hot-toast'
+import { FUEL_TYPES, fuelLabel } from '../lib/fuels'
 
 const VESSEL_TYPES: VesselType[] = ['bulk_carrier', 'container_ship', 'tanker', 'general_cargo', 'roro', 'cruise', 'other']
 
@@ -45,7 +46,7 @@ function AddVesselModal({ onClose }: { onClose: () => void }) {
             ['IMO Number', 'imo_number', 'text', '1234567'],
             ['Vessel Name', 'name', 'text', 'MV Example'],
             ['Flag State', 'flag_state', 'text', 'PAN'],
-            ['Fuel Type', 'fuel_type', 'text', 'VLSFO'],
+            ['Fuel Type', 'fuel_type', 'select', 'VLSFO'],
             ['Gross Tonnage', 'gross_tonnage', 'number', ''],
             ['Deadweight Tonnage', 'deadweight_tonnage', 'number', ''],
             ['Engine Power (kW)', 'engine_power_kw', 'number', ''],
@@ -54,13 +55,11 @@ function AddVesselModal({ onClose }: { onClose: () => void }) {
           ].map(([label, key, type, placeholder]) => (
             <div key={key}>
               <label className="label">{label}</label>
-              <input
-                type={type}
-                className="input"
-                placeholder={placeholder}
-                value={(form as any)[key]}
-                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-              />
+              {type === 'select' ? (
+                <select className="input" value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}>
+                  {FUEL_TYPES.map((fuel) => <option key={fuel} value={fuel}>{fuelLabel(fuel)}</option>)}
+                </select>
+              ) : <input type={type} className="input" placeholder={placeholder} value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />}
             </div>
           ))}
           <div>

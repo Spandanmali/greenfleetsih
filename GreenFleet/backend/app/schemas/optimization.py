@@ -1,6 +1,7 @@
 from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
+from app.core.fuels import FUEL_TYPES
 
 
 class OptimizationRoute(BaseModel):
@@ -31,7 +32,7 @@ class QPSORequest(BaseModel):
     @field_validator("fuel_types")
     @classmethod
     def validate_fuel_types(cls, fuel_types: List[str]) -> List[str]:
-        allowed = {"VLSFO", "MGO", "HFO", "LNG", "METHANOL"}
+        allowed = set(FUEL_TYPES)
         normalized = [fuel.upper() for fuel in fuel_types]
         if any(fuel not in allowed for fuel in normalized):
             raise ValueError("Unsupported fuel type")
