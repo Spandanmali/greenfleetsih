@@ -15,11 +15,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    # Replace settings.BACKEND_CORS_ORIGINS with a hardcoded list:
     allow_origins=[
-        "https://greenfleetsih-gamma.vercel.app", 
+        "https://greenfleetsih-gamma.vercel.app",
         "http://localhost:5173",
-        "*" 
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
