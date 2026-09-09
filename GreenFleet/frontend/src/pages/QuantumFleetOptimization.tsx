@@ -45,14 +45,24 @@ type OptimizationResult = {
 }
 
 const DEFAULT_SPEEDS = '10, 12, 14, 16'
+const DEMO_VESSEL_NAMES = [
+  'MV Aurora 01',
+  'MV Blue Horizon 03',
+  'MV Coral Wave 09',
+  'MV Emerald Tide 04',
+  'MV Green Meridian 08',
+  'MV North Star 05',
+  'MV Ocean Crest 02',
+  'MV Pacific Dawn 06',
+]
 
 function newRoute(): RouteInput {
   return {
     id: `route-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    origin_port: '',
-    destination_port: '',
-    distance_nm: '',
-    cargo_weight_mt: '',
+    origin_port: 'SGSIN',
+    destination_port: 'NLRTM',
+    distance_nm: getIdealDistance('SGSIN', 'NLRTM'),
+    cargo_weight_mt: '45000',
     fuel_price_per_mt: '600',
   }
 }
@@ -76,7 +86,8 @@ export default function QuantumFleetOptimization() {
 
   useEffect(() => {
     if (selectedVesselIds.length === 0 && vessels.length > 0) {
-      setSelectedVesselIds([vessels[0].id])
+      const demoVessels = vessels.filter((vessel) => DEMO_VESSEL_NAMES.includes(vessel.name))
+      setSelectedVesselIds((demoVessels.length > 0 ? demoVessels : vessels.slice(0, 1)).map((vessel) => vessel.id))
     }
   }, [selectedVesselIds.length, vessels])
 

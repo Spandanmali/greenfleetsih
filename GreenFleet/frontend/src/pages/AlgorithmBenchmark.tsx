@@ -34,6 +34,17 @@ const defaultRoute: RouteInput = {
   fuel_price_per_mt: '600',
 }
 
+const demoVesselNames = [
+  'MV Aurora 01',
+  'MV Blue Horizon 03',
+  'MV Coral Wave 09',
+  'MV Emerald Tide 04',
+  'MV Green Meridian 08',
+  'MV North Star 05',
+  'MV Ocean Crest 02',
+  'MV Pacific Dawn 06',
+]
+
 export default function AlgorithmBenchmark() {
   const [route, setRoute] = useState<RouteInput>(defaultRoute)
   const [selectedVesselIds, setSelectedVesselIds] = useState<string[]>([])
@@ -47,7 +58,10 @@ export default function AlgorithmBenchmark() {
   })
 
   useEffect(() => {
-    if (selectedVesselIds.length === 0 && vessels.length > 0) setSelectedVesselIds([vessels[0].id])
+    if (selectedVesselIds.length === 0 && vessels.length > 0) {
+      const demoVessels = vessels.filter((vessel) => demoVesselNames.includes(vessel.name))
+      setSelectedVesselIds((demoVessels.length > 0 ? demoVessels : vessels.slice(0, 1)).map((vessel) => vessel.id))
+    }
   }, [selectedVesselIds.length, vessels])
 
   const parsedSpeeds = speeds.split(',').map((value) => Number(value.trim())).filter(Number.isFinite)
@@ -68,8 +82,6 @@ export default function AlgorithmBenchmark() {
 
   const qpso_history = result?.qpso.convergence ?? []
   const ga_history = result?.ga.convergence ?? []
-  console.log('QPSO history:', qpso_history)
-  console.log('GA history:', ga_history)
 
   const chartData = qpso_history.map((qpsoCost, iteration) => ({ iteration, qpso: qpsoCost, ga: ga_history[iteration] }))
   const costDifference = result ? Math.abs(result.qpso.final_cost_usd - result.ga.final_cost_usd) : 0
