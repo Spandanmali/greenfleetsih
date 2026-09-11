@@ -12,7 +12,7 @@ class PredictionRequest(BaseModel):
     cargo_weight_mt: float
     cruising_speed_knots: float
     fuel_type: str = "VLSFO"
-    fuel_price_per_mt: Optional[float] = 600.0
+    fuel_price_per_mt: Optional[float] = None
 
     @field_validator("fuel_type")
     @classmethod

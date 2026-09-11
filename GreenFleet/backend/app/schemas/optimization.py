@@ -10,7 +10,6 @@ class OptimizationRoute(BaseModel):
     destination_port: str = Field(min_length=1)
     distance_nm: float = Field(gt=0)
     cargo_weight_mt: float = Field(ge=0)
-    fuel_price_per_mt: float = Field(default=600.0, gt=0)
 
 
 class QPSORequest(BaseModel):
@@ -63,6 +62,7 @@ class QPSOMetrics(BaseModel):
     convergence: List[float]
     generations: int = 0
     runtime_ms: float = 0
+    initialization_signature: str
 
 
 class QPSOResponse(BaseModel):
@@ -77,6 +77,7 @@ class BenchmarkAlgorithmResult(BaseModel):
     final_cost_usd: float
     convergence: List[float]
     runtime_ms: float
+    initialization_signature: str
 
 
 class BenchmarkResponse(BaseModel):

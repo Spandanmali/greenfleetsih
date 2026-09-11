@@ -19,8 +19,8 @@ type RouteInput = {
 }
 
 type BenchmarkResult = {
-  qpso: { final_cost_usd: number; convergence: number[]; runtime_ms: number }
-  ga: { final_cost_usd: number; convergence: number[]; runtime_ms: number }
+  qpso: { final_cost_usd: number; convergence: number[]; runtime_ms: number; initialization_signature: string }
+  ga: { final_cost_usd: number; convergence: number[]; runtime_ms: number; initialization_signature: string }
   iterations: number
   particles: number
 }
@@ -69,7 +69,7 @@ export default function AlgorithmBenchmark() {
 
   const mutation = useMutation<BenchmarkResult>({
     mutationFn: () => optimizationApi.benchmark({
-      routes: [{ ...route, distance_nm: Number(route.distance_nm), cargo_weight_mt: Number(route.cargo_weight_mt), fuel_price_per_mt: Number(route.fuel_price_per_mt) || 600 }],
+        routes: [{ ...route, distance_nm: Number(route.distance_nm), cargo_weight_mt: Number(route.cargo_weight_mt) }],
       vessel_ids: selectedVesselIds,
       speeds: parsedSpeeds,
       fuel_types: fuelTypes,
@@ -126,6 +126,7 @@ export default function AlgorithmBenchmark() {
           <div className="flex items-center justify-between mb-5"><div><p className="label mb-1">Convergence history</p><h2 className="text-lg font-semibold">Best cost by iteration</h2></div><div className="flex items-center gap-2 text-xs text-[#8d9b99]"><Gauge size={15} />{result.iterations} iterations per algorithm</div></div>
           <div className="h-[360px] w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 18, left: 8, bottom: 8 }}><CartesianGrid stroke="rgba(255,255,255,.08)" strokeDasharray="3 3" /><XAxis dataKey="iteration" stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} label={{ value: 'Iteration', position: 'insideBottom', offset: -2, fill: '#8d9b99' }} /><YAxis stroke="#71807e" tick={{ fill: '#8d9b99', fontSize: 11 }} tickFormatter={(value) => formatUsd(Number(value))} label={{ value: 'Best Cost', angle: -90, position: 'insideLeft', fill: '#8d9b99' }} /><Tooltip contentStyle={{ background: '#101718', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10 }} formatter={(value: number) => [formatUsd(value), '']} /><Legend /><Line type="monotone" dataKey="qpso" name="QPSO" stroke="#76dbe2" strokeWidth={2.5} dot={false} /><Line type="monotone" dataKey="ga" name="GA" stroke="#70e5a0" strokeWidth={2.5} dot={false} /></LineChart></ResponsiveContainer></div>
           <p className="mt-3 flex items-center gap-2 text-xs text-[#8d9b99]"><Timer size={14} />Both algorithms received the same route, vessel set, speeds, fuels, objective, iteration count, population size, and seed.</p>
+                  <p className="mt-3 flex items-center gap-2 text-xs text-[#8d9b99]"><Timer size={14} />Independent initial states: QPSO {result.qpso.initialization_signature} | GA {result.ga.initialization_signature}</p>
         </section>
       </>}
     </div>

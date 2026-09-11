@@ -14,7 +14,22 @@ type RouteInput = {
   destination_port: string
   distance_nm: string
   cargo_weight_mt: string
-  fuel_price_per_mt: string
+}
+
+type OptimizationRequest = {
+  routes: Array<{
+    id: string
+    origin_port: string
+    destination_port: string
+    distance_nm: number
+    cargo_weight_mt: number
+  }>
+  vessel_ids: string[]
+  speeds: number[]
+  fuel_types: string[]
+  method: 'qpso' | 'ga'
+  iterations: number
+  particles: number
 }
 
 type OptimizationResult = {
@@ -61,19 +76,45 @@ function newRoute(): RouteInput {
     id: `route-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     origin_port: 'SGSIN',
     destination_port: 'NLRTM',
-    distance_nm: getIdealDistance('SGSIN', 'NLRTM'),
-    cargo_weight_mt: '45000',
-    fuel_price_per_mt: '600',
+    distance_nm: '',
+    cargo_weight_mt: '',
+  }
+}
+
+function initialOptimizationState() {
+  return {
+    routes: [newRoute()],
+    selectedVesselIds: [] as string[],
+    speeds: DEFAULT_SPEEDS,
+    fuelTypes: [...FUEL_TYPES],
+    method: 'qpso' as const,
+    result: null as OptimizationResult | null,
   }
 }
 
 export default function QuantumFleetOptimization() {
-  const [routes, setRoutes] = useState<RouteInput[]>([newRoute()])
-  const [selectedVesselIds, setSelectedVesselIds] = useState<string[]>([])
-  const [speeds, setSpeeds] = useState(DEFAULT_SPEEDS)
-  const [fuelTypes, setFuelTypes] = useState<string[]>(FUEL_TYPES)
-  const [method, setMethod] = useState<'qpso' | 'ga'>('qpso')
-  const [result, setResult] = useState<OptimizationResult | null>(null)
+  const initialState = initialOptimizationState()
+  const [routes, setRoutes] = useState<RouteInput[]>(initialState.routes)
+  const [selectedVesselIds, setSelectedVesselIds] = useState<string[]>(initialState.selectedVesselIds)
+  const [speeds, setSpeeds] = useState(initialState.speeds)
+  const [fuelTypes, setFuelTypes] = useState<string[]>(initialState.fuelTypes)
+  const [method, setMethod] = useState<'qpso' | 'ga'>(initialState.method)
+  const [result, setResult] = useState<OptimizationResult | null>(initialState.result)
+
+  useEffect(() => {
+    const resetPageState = (event?: PageTransitionEvent) => {
+      if (event && !event.persisted) return
+      const freshState = initialOptimizationState()
+      setRoutes(freshState.routes)
+      setSelectedVesselIds(freshState.selectedVesselIds)
+      setSpeeds(freshState.speeds)
+      setFuelTypes(freshState.fuelTypes)
+      setMethod(freshState.method)
+      setResult(freshState.result)
+    }
+    window.addEventListener('pageshow', resetPageState)
+    return () => window.removeEventListener('pageshow', resetPageState)
+  }, [])
 
   const { data: vessels = [] } = useQuery<Vessel[]>({
     queryKey: ['vessels'],
@@ -106,7 +147,6 @@ export default function QuantumFleetOptimization() {
       destination_port: voyage.destination_port,
       distance_nm: String(voyage.distance_nm ?? ''),
       cargo_weight_mt: String(voyage.cargo_weight_mt),
-      fuel_price_per_mt: '600',
     }, ...current.slice(1)])
     if (voyage.vessel_id && !selectedVesselIds.includes(voyage.vessel_id)) {
       setSelectedVesselIds((current) => [...current, voyage.vessel_id])
@@ -121,29 +161,41 @@ export default function QuantumFleetOptimization() {
   const bunkerSpeed = parsedSpeeds[0] || 14
   const validInput = validRoutes.length > 0 && selectedVesselIds.length > 0 && parsedSpeeds.length > 0 && fuelTypes.length > 0
 
-  const mutation = useMutation<OptimizationResult>({
-    mutationFn: () => optimizationApi.runQpso({
+  const mutation = useMutation<OptimizationResult, unknown, OptimizationRequest>({
+    mutationKey: ['quantum-fleet-optimization', method],
+    mutationFn: (request) => {
+      console.log('[QuantumFleetOptimization] request payload', JSON.stringify(request, null, 2))
+      return optimizationApi.runQpso(request).then((response) => {
+        console.log('[QuantumFleetOptimization] response body', JSON.stringify(response.data, null, 2))
+        return response.data
+      })
+    },
+    onSuccess: (data) => {
+      setResult(data)
+      toast.success(`${data.metrics.method === 'ga' ? 'GA' : 'QPSO'} optimization complete`)
+    },
+    onError: (error: any) => toast.error(error.response?.data?.detail || 'QPSO optimization failed'),
+  })
+
+  const runOptimization = () => {
+    setResult(null)
+    const request: OptimizationRequest = {
       routes: validRoutes.map((route) => ({
         id: route.id,
         origin_port: route.origin_port,
         destination_port: route.destination_port,
         distance_nm: Number(route.distance_nm),
         cargo_weight_mt: Number(route.cargo_weight_mt),
-        fuel_price_per_mt: Number(route.fuel_price_per_mt) || 600,
       })),
-      vessel_ids: selectedVesselIds,
-      speeds: parsedSpeeds,
-      fuel_types: fuelTypes,
+      vessel_ids: [...selectedVesselIds],
+      speeds: [...parsedSpeeds],
+      fuel_types: [...fuelTypes],
       method,
       iterations: 30,
       particles: 20,
-    }).then((response) => response.data),
-    onSuccess: (data) => {
-      setResult(data)
-      toast.success('QPSO optimization complete')
-    },
-    onError: (error: any) => toast.error(error.response?.data?.detail || 'QPSO optimization failed'),
-  })
+    }
+    mutation.mutate(request)
+  }
 
   const toggleFuel = (fuel: string) => {
     setFuelTypes((current) => current.includes(fuel)
@@ -186,8 +238,7 @@ export default function QuantumFleetOptimization() {
                   <div><label className="label">Destination port</label><select className="input" value={route.destination_port} onChange={(event) => { const destination = event.target.value; setRoutes((current) => current.map((item, routeIndex) => routeIndex === index ? { ...item, destination_port: destination, distance_nm: getIdealDistance(item.origin_port, destination) } : item)) }}><option value="">Select destination port...</option>{PORTS.map((port) => <option key={port.code} value={port.code}>{port.name} ({port.code})</option>)}</select></div>
                   <div><label className="label">Distance (NM)</label><input type="number" className="input" value={route.distance_nm} placeholder="Select both ports" readOnly aria-readonly="true" /></div>
                   <div><label className="label">Cargo (MT)</label><input type="number" className="input" value={route.cargo_weight_mt} placeholder="45000" onChange={(event) => updateRoute(index, 'cargo_weight_mt', event.target.value)} /></div>
-                  <div><label className="label">Estimated bunker (MT)</label><input type="number" className="input" value={primaryVessel ? getEstimatedBunker(route.distance_nm, route.cargo_weight_mt, bunkerSpeed, primaryVessel.engine_power_kw || 12000, primaryVessel.deadweight_tonnage || 75000).toFixed(2) : ''} placeholder="Select a vessel and complete route" readOnly aria-readonly="true" /></div>
-                  <div><label className="label">Fuel price (USD/MT)</label><input type="number" className="input" value={route.fuel_price_per_mt} onChange={(event) => updateRoute(index, 'fuel_price_per_mt', event.target.value)} /></div>
+                  <div><label className="label">Estimated bunker (MT)</label><input type="number" className="input" value={primaryVessel && Number(route.distance_nm) > 0 && route.cargo_weight_mt !== '' ? getEstimatedBunker(route.distance_nm, route.cargo_weight_mt, bunkerSpeed, primaryVessel.engine_power_kw || 12000, primaryVessel.deadweight_tonnage || 75000).toFixed(2) : ''} placeholder="Select a vessel and complete route" readOnly aria-readonly="true" /></div>
                 </div>
               </div>
             ))}
@@ -202,18 +253,19 @@ export default function QuantumFleetOptimization() {
               {vessels.map((vessel) => <label key={vessel.id} className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${selectedVesselIds.includes(vessel.id) ? 'border-[#55d58a]/40 bg-[#55d58a]/10' : 'border-white/10 bg-white/[0.02]'}`}><input type="checkbox" checked={selectedVesselIds.includes(vessel.id)} onChange={() => setSelectedVesselIds((current) => current.includes(vessel.id) ? current.filter((id) => id !== vessel.id) : [...current, vessel.id])} /><Ship size={16} className="text-[#76dbe2]" /><span className="min-w-0 flex-1"><span className="block text-sm truncate">{vessel.name}</span><span className="block text-xs text-[#62706f]">{vessel.vessel_type} | {vessel.design_speed_knots ?? 'speed n/a'} kn</span></span>{selectedVesselIds.includes(vessel.id) && <Check size={15} className="text-[#70e5a0]" />}</label>)}
               {vessels.length === 0 && <p className="text-sm text-[#8d9b99]">No active vessels available.</p>}
             </div>
+            
           </div>
           <div><label className="label">Available speeds (knots, comma separated)</label><input className="input" value={speeds} onChange={(event) => setSpeeds(event.target.value)} /></div>
           <div><label className="label">Fuel types</label><div className="flex flex-wrap gap-2">{FUEL_TYPES.map((fuel) => <button key={fuel} className={`rounded-lg border px-3 py-2 text-xs transition-colors ${fuelTypes.includes(fuel) ? 'border-[#55d58a]/40 bg-[#55d58a]/10 text-[#70e5a0]' : 'border-white/10 text-[#8d9b99]'}`} onClick={() => toggleFuel(fuel)}><Fuel size={13} className="inline mr-1" />{fuel}</button>)}</div></div>
           <div><label className="label">Optimization method</label><div className="grid grid-cols-2 gap-2"><button className={`rounded-lg border px-3 py-2 text-sm ${method === 'qpso' ? 'border-[#53c8d2]/50 bg-[#53c8d2]/10 text-[#76dbe2]' : 'border-white/10 text-[#8d9b99]'}`} onClick={() => setMethod('qpso')}>QPSO</button><button className={`rounded-lg border px-3 py-2 text-sm ${method === 'ga' ? 'border-[#55d58a]/50 bg-[#55d58a]/10 text-[#70e5a0]' : 'border-white/10 text-[#8d9b99]'}`} onClick={() => setMethod('ga')}>Classical GA</button></div></div>
-          <button className="btn-primary w-full gap-2" disabled={!validInput || mutation.isPending} onClick={() => mutation.mutate()}>{mutation.isPending ? <LoaderCircle size={17} className="animate-spin" /> : <Zap size={17} />}{mutation.isPending ? `Running ${method === 'ga' ? 'GA' : 'QPSO'} optimization...` : `Run ${method === 'ga' ? 'Classical GA' : 'QPSO'} Optimization`}</button>
+          <button className="btn-primary w-full gap-2" disabled={!validInput || mutation.isPending} onClick={runOptimization}>{mutation.isPending ? <LoaderCircle size={17} className="animate-spin" /> : <Zap size={17} />}{mutation.isPending ? `Running ${method === 'ga' ? 'GA' : 'QPSO'} optimization...` : `Run ${method === 'ga' ? 'Classical GA' : 'QPSO'} Optimization`}</button>
           {!validInput && <p className="text-xs text-[#ffb46b]">Choose at least one valid route, vessel, speed, and fuel type.</p>}
         </section>
       </div>
 
       {result && <section className="card space-y-5 gf-enter">
-        <div className="flex items-start gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#55d58a]/10 border border-[#55d58a]/20"><Atom size={20} className="text-[#70e5a0]" /></div><div><p className="eyebrow mb-1">{result.metrics.method === 'ga' ? 'Classical GA Result' : 'QPSO Result'}</p><h2 className="text-xl font-semibold">Recommended fleet plan</h2></div></div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><div className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><p className="label">Fuel consumption</p><p className="text-2xl font-semibold">{formatFuelMt(result.total_predicted_fuel_mt)} MT</p></div><div className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><p className="label">Total cost</p><p className="text-2xl font-semibold text-[#70e5a0]">{formatUsd(result.total_cost_usd)}</p></div><div className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><p className="label">CO2 emissions</p><p className="text-2xl font-semibold text-[#76dbe2]">{result.total_co2_tonnes.toLocaleString()} t</p></div></div>
+        <div className="flex items-start gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#55d58a]/10 border border-[#55d58a]/20"><Atom size={20} className="text-[#70e5a0]" /></div><div><p className="eyebrow mb-1">{result.metrics.method === 'ga' ? 'Classical GA Result' : 'QPSO Result'}</p><h2 className="text-xl font-semibold">Recommended fleet plan</h2><p className="text-xs text-[#8d9b99] mt-1">Showing last run. Click Run to recalculate.</p></div></div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><div className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><p className="label">Fuel consumption</p><p className="text-2xl font-semibold">{formatFuelMt(result.total_predicted_fuel_mt)} MT</p></div><div className="rounded-xl border border-white/10 bg-white/[0.025] p-4"><p className="label">Total cost</p><p className="text-2xl font-semibold text-[#70e5a0]">{formatUsd(result.total_cost_usd)}</p></div></div>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="border-b border-white/10 text-[10px] uppercase tracking-widest text-[#62706f]"><tr><th className="py-3 pr-4">Route</th><th className="py-3 pr-4">Best vessel</th><th className="py-3 pr-4">Optimal speed</th><th className="py-3 pr-4">Fuel</th><th className="py-3 pr-4">Fuel consumption</th><th className="py-3">Cost</th></tr></thead><tbody>{result.assignments.map((assignment) => <tr key={assignment.route_id} className="border-b border-white/[0.06] last:border-0"><td className="py-3 pr-4">{assignment.origin_port} to {assignment.destination_port}</td><td className="py-3 pr-4">{assignment.vessel_name}</td><td className="py-3 pr-4">{assignment.speed_knots} kn</td><td className="py-3 pr-4 text-[#70e5a0]">{assignment.fuel_type}</td><td className="py-3 pr-4">{formatFuelMt(assignment.predicted_fuel_mt)} MT</td><td className="py-3">{formatUsd(assignment.predicted_cost_usd)}</td></tr>)}</tbody></table></div>
         <div className="flex flex-wrap gap-4 text-xs text-[#8d9b99]"><span className="flex items-center gap-1.5"><Leaf size={14} className="text-[#70e5a0]" />{result.total_co2_tonnes.toLocaleString()} t CO2</span><span className="flex items-center gap-1.5"><RouteIcon size={14} className="text-[#76dbe2]" />{result.metrics.evaluations} candidate evaluations</span><span className="flex items-center gap-1.5"><Zap size={14} className="text-[#ffcf70]" />{result.metrics.method === 'ga' ? `${result.metrics.generations} generations` : `${result.metrics.iterations} QPSO iterations`}</span><span>{result.metrics.improvement_percent}% cost improvement</span>{result.metrics.runtime_ms ? <span>{result.metrics.runtime_ms} ms runtime</span> : null}</div>
       </section>}

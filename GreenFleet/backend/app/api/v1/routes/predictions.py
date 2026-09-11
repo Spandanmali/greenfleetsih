@@ -31,7 +31,7 @@ def run_prediction(
         cargo_weight_mt=payload.cargo_weight_mt,
         speed_knots=payload.cruising_speed_knots,
         fuel_type=payload.fuel_type,
-        fuel_price_per_mt=payload.fuel_price_per_mt or 600.0,
+        fuel_price_per_mt=payload.fuel_price_per_mt,
     )
 
     prediction = FuelPrediction(
@@ -43,7 +43,7 @@ def run_prediction(
         cargo_weight_mt=payload.cargo_weight_mt,
         cruising_speed_knots=payload.cruising_speed_knots,
         fuel_type=payload.fuel_type,
-        fuel_price_per_mt=payload.fuel_price_per_mt or 600.0,
+        fuel_price_per_mt=result["fuel_price_per_mt"],
         predicted_fuel_mt=result["predicted_fuel_mt"],
         confidence_lower=result["confidence_lower"],
         confidence_upper=result["confidence_upper"],

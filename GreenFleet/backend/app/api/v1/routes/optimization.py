@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+import hashlib
 import random
 import time
 from sqlalchemy.orm import Session
@@ -8,7 +9,7 @@ from app.db.database import get_db
 from app.models.user import User
 from app.models.vessel import Vessel
 from app.optimization.evaluator import FleetProblem
-from app.optimization.ga import GAOptimizer, GAResult
+from app.optimization.ga import GAResult
 from app.optimization.qpso import QPSOOptimizer
 from app.optimization.qpso import DiscreteAssignment
 from app.schemas.optimization import BenchmarkResponse, QPSORequest, QPSOResponse
@@ -39,14 +40,14 @@ def run_benchmark_qpso(payload: QPSORequest, problem: FleetProblem):
     optimizer = QPSOOptimizer(
         route_count=len(payload.routes), vessel_count=len(problem.vessels),
         speed_count=len(payload.speeds), fuel_count=len(payload.fuel_types),
-        particles=payload.particles, iterations=payload.iterations, seed=42,
+        particles=payload.particles, iterations=payload.iterations,
     )
     return optimizer.optimize(problem.cost)
 
 
 def run_classical_ga(payload: QPSORequest, problem: FleetProblem):
     """Run a self-contained classical GA for benchmark comparisons."""
-    random_source = random.Random(1337)
+    random_source = random.Random()
     route_count = len(payload.routes)
     choice_counts = (len(problem.vessels), len(payload.speeds), len(payload.fuel_types))
     population_size = max(20, min(payload.particles, 30))
@@ -82,9 +83,9 @@ def run_classical_ga(payload: QPSORequest, problem: FleetProblem):
 
     started = time.perf_counter()
     population = [random_assignment() for _ in range(population_size)]
+    initialization_signature = hashlib.sha256(repr(population).encode()).hexdigest()[:16]
     population_costs = [problem.cost(individual) for individual in population]
     evaluations = population_size
-    print("GA generation 0 population costs:", population_costs)
 
     best_index = min(range(population_size), key=population_costs.__getitem__)
     best_cost = population_costs[best_index]
@@ -118,6 +119,7 @@ def run_classical_ga(payload: QPSORequest, problem: FleetProblem):
         evaluations=evaluations,
         runtime_ms=round((time.perf_counter() - started) * 1000, 2),
         convergence=convergence,
+        initialization_signature=initialization_signature,
     )
 
 
@@ -145,12 +147,7 @@ def run_qpso(
 
     problem = FleetProblem(payload.routes, vessel_specs, payload.speeds, payload.fuel_types)
     if payload.method == "ga":
-        optimizer = GAOptimizer(
-            route_count=len(payload.routes), vessel_count=len(vessel_specs),
-            speed_count=len(payload.speeds), fuel_count=len(payload.fuel_types),
-            population=payload.particles, generations=payload.iterations, seed=42,
-        )
-        result = optimizer.optimize(problem.cost)
+        result = run_classical_ga(payload, problem)
         assignments = problem.result_assignments(result.assignments)
         metrics = {
             "method": "ga", "iterations": result.generations, "generations": result.generations,
@@ -158,12 +155,13 @@ def run_qpso(
             "initial_cost_usd": round(result.initial_cost, 2), "final_cost_usd": round(result.best_cost, 2),
             "improvement_percent": round(((result.initial_cost - result.best_cost) / result.initial_cost * 100) if result.initial_cost else 0, 2),
             "convergence": result.convergence, "runtime_ms": result.runtime_ms,
+            "initialization_signature": result.initialization_signature,
         }
     else:
         optimizer = QPSOOptimizer(
             route_count=len(payload.routes), vessel_count=len(vessel_specs),
             speed_count=len(payload.speeds), fuel_count=len(payload.fuel_types),
-            particles=payload.particles, iterations=payload.iterations, seed=42,
+            particles=payload.particles, iterations=payload.iterations,
         )
         result = optimizer.optimize(problem.cost)
         assignments = problem.result_assignments(optimizer.decode(result.best_position))
@@ -173,6 +171,7 @@ def run_qpso(
             "initial_cost_usd": round(result.initial_cost, 2), "final_cost_usd": round(result.best_cost, 2),
             "improvement_percent": round(((result.initial_cost - result.best_cost) / result.initial_cost * 100) if result.initial_cost else 0, 2),
             "convergence": result.convergence, "runtime_ms": result.runtime_ms,
+            "initialization_signature": result.initialization_signature,
         }
 
     return {
@@ -198,11 +197,13 @@ def run_algorithm_benchmark(
             "final_cost_usd": qpso_result.best_cost,
             "convergence": qpso_result.convergence,
             "runtime_ms": qpso_result.runtime_ms,
+                    "initialization_signature": qpso_result.initialization_signature,
         },
         "ga": {
             "final_cost_usd": ga_result.best_cost,
             "convergence": ga_result.convergence,
             "runtime_ms": ga_result.runtime_ms,
+                    "initialization_signature": ga_result.initialization_signature,
         },
         "iterations": payload.iterations,
         "particles": payload.particles,

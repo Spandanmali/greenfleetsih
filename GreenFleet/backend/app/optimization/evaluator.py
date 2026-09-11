@@ -26,7 +26,6 @@ class FleetProblem:
             cargo_weight_mt=route.cargo_weight_mt,
             speed_knots=self.speeds[assignment.speed],
             fuel_type=self.fuel_types[assignment.fuel],
-            fuel_price_per_mt=route.fuel_price_per_mt,
         )
 
     def cost(self, assignments: List[DiscreteAssignment]) -> float:

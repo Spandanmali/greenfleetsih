@@ -75,7 +75,7 @@ def predict(
     cargo_weight_mt: float,
     speed_knots: float,
     fuel_type: str = "VLSFO",
-    fuel_price_per_mt: float | None = 600.0,
+    fuel_price_per_mt: float | None = None,
 ) -> dict:
     model = load_model()
     load_factor = cargo_weight_mt / max(deadweight_tonnage, 1)

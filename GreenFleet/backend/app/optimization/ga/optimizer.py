@@ -2,6 +2,7 @@
 
 import random
 import time
+import hashlib
 from dataclasses import dataclass
 from typing import Callable, List
 
@@ -19,6 +20,7 @@ class GAResult:
     evaluations: int
     runtime_ms: float
     convergence: List[float]
+    initialization_signature: str
 
 
 class GAOptimizer:
@@ -59,8 +61,21 @@ class GAOptimizer:
         ])
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("evaluate", lambda individual: (objective(self._assignment(individual)),))
-        toolbox.register("select", tools.selTournament, tournsize=3)
-        toolbox.register("mate", tools.cxTwoPoint)
+
+        def select(population, count):
+            return [min(
+                (self.random.choice(population) for _ in range(3)),
+                key=lambda individual: individual.fitness.values[0],
+            ) for _ in range(count)]
+
+        def mate(first, second):
+            if len(first) > 1:
+                left, right = sorted(self.random.sample(range(len(first)), 2))
+                first[left:right], second[left:right] = second[left:right], first[left:right]
+            return first, second
+
+        toolbox.register("select", select)
+        toolbox.register("mate", mate)
 
         def mutate(individual):
             for index, choice in zip(range(len(individual)), self.choice_counts * self.route_count):
@@ -70,6 +85,7 @@ class GAOptimizer:
 
         toolbox.register("mutate", mutate)
         population = toolbox.population(n=self.population_size)
+        initialization_signature = hashlib.sha256(repr([individual[:] for individual in population]).encode()).hexdigest()[:16]
         evaluations = 0
 
         def evaluate_invalid():
@@ -112,4 +128,5 @@ class GAOptimizer:
             evaluations=evaluations,
             runtime_ms=round((time.perf_counter() - started) * 1000, 2),
             convergence=convergence,
+            initialization_signature=initialization_signature,
         )

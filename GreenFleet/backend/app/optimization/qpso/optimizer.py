@@ -3,6 +3,7 @@
 import math
 import random
 import time
+import hashlib
 from dataclasses import dataclass
 from typing import Callable, List, Sequence
 
@@ -24,6 +25,7 @@ class QPSOResult:
     convergence: List[float]
     evaluations: int
     runtime_ms: float
+    initialization_signature: str
 
 
 class QPSOOptimizer:
@@ -76,6 +78,7 @@ class QPSOOptimizer:
             for _ in range(self.particles)
         ]
         personal_best = [particle[:] for particle in particles]
+        initialization_signature = hashlib.sha256(repr(particles).encode()).hexdigest()[:16]
         personal_costs = [objective(self.decode(particle)) for particle in particles]
         evaluations = self.particles
         best_index = min(range(self.particles), key=personal_costs.__getitem__)
@@ -120,4 +123,5 @@ class QPSOOptimizer:
             convergence,
             evaluations,
             round((time.perf_counter() - started) * 1000, 2),
+            initialization_signature,
         )

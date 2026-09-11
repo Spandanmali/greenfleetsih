@@ -206,7 +206,7 @@ export default function FuelPredictionPage() {
                   </thead>
                   <tbody className="divide-y divide-white/[0.06]">
                     {result.speed_sensitivity.map((row) => (
-                      <tr key={row.speed_knots} className={row.speed_knots === result.cruising_speed_knots ? 'bg-ocean-50' : ''}>
+                      <tr key={row.speed_knots} className={row.speed_knots === result.cruising_speed_knots ? 'white' : ''}>
                         <td className="py-2 font-medium">{row.speed_knots} kn {row.speed_knots === result.cruising_speed_knots ? '← selected' : ''}</td>
                         <td className="py-2 text-right">{formatFuelMt(row.fuel_mt)}</td>
                         <td className="py-2 text-right">{formatUsd(row.cost_usd)}</td>
